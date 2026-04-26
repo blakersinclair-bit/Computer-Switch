@@ -427,31 +427,41 @@ def launch_app():
             
     return "Invalid Path", 400
 
-# Global memory bank to hold the latest video data from Chrome
+# Global memory bank
 latest_youtube_data = {"title": "No Media", "channel": "", "url": ""}
+sync_back_requested = False
 
 @app.route('/youtube') 
 def youtube_page(): 
     return render_template('youtube.html') 
 
-# --- 1. THE CATCHER (Listens for the Chrome Extension) ---
+# --- 1. THE CATCHER (Listens for PC data) ---
 @app.route('/youtube/update', methods=['POST'])
 def update_youtube():
-    from flask import request # Ensures request is available to read the incoming JSON
     global latest_youtube_data
-    
-    # When Chrome sends new data, instantly overwrite the memory bank
     latest_youtube_data = request.json 
     return {"status": "success"}, 200
 
-# --- 2. THE DASHBOARD ROUTE (Sends data to your phone) ---
+# --- 2. THE DASHBOARD ROUTE (Sends data to phone) ---
 @app.route('/youtube/pull', methods=['GET'])
 def pull_youtube():
-    from flask import jsonify
-    # Instantly hands your phone whatever is currently in the memory bank
     return jsonify(latest_youtube_data), 200
 
+# --- 3. THE SYNC TRIGGER (Called by the new button) ---
+@app.route('/youtube/sync_back', methods=['POST'])
+def sync_back_trigger():
+    global sync_back_requested
+    sync_back_requested = True
+    return {"status": "triggered"}, 200
+
+# --- 4. THE COMMAND CHECK (Called by Chrome Extension) ---
+@app.route('/youtube/check_sync', methods=['GET'])
+def check_sync():
+    global sync_back_requested
+    if sync_back_requested:
+        sync_back_requested = False # Reset immediately
+        return {"sync": True}, 200
+    return {"sync": False}, 200
 
 if __name__ == '__main__':
-    # threaded=True allows simultaneous mouse & keyboard packets
     app.run(host='0.0.0.0', port=5000, threaded=True, debug=True)

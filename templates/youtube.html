@@ -11,6 +11,10 @@
                 <button class="btn" onclick="pullYouTubeVideo()" style="background: #FF0000; color: white; border: none; width: 100%; padding: 20px; font-weight: 900; border-radius: 12px; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); margin-bottom: 20px;"> PULL VIDEO
                 </button>
 
+                <button onclick="syncBackToPC()" style="background: #222; color: #FFF; border: 1px solid #444; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; font-weight: bold;">
+                    SYNC BACK TO PC
+                </button>
+
                 <div id="yt-output" style="color: white; font-weight: 900; font-size: 1rem; min-height: 40px; padding: 10px; background: #111; border-radius: 8px; border: 1px solid #333;"> WAITING...
                 </div>
                 
@@ -55,6 +59,16 @@
         outputDiv.innerHTML = "CONNECTION FAILED";
         outputDiv.style.color = "#FF0000";
         console.error("Fetch error:", err);
+    });
+}
+
+function syncBackToPC() {
+    // Simply tells Python to set the 'sync_back_requested' flag to True
+    fetch('/youtube/sync_back', { method: 'POST' })
+    .then(() => {
+        const btn = event.target;
+        btn.innerText = "SYNCING...";
+        setTimeout(() => { btn.innerText = "SYNC BACK TO PC"; }, 2000);
     });
 }
     </script>
