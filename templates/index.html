@@ -22,7 +22,7 @@
             </div>
 
             <div class="control-card" style="border-color: #a855f7;">
-                <label style="color: #a855f7;">WINDOW MANAGER</label>
+                <label style="color: #a855f7;">OPEN WINDOWS</label>
                 <a href="/windows" class="btn btn-solid-purple">MANAGE WINDOWS</a>
             </div>
 
@@ -39,7 +39,7 @@
             </div>
 
             <div class="control-card" style="border-color: #ffcc00;">
-                <label style="color: #ffcc00;">AUDIO DEVICE</label>
+                <label style="color: #ffcc00;">AUDIO DEVICES</label>
                 <a href="/audio" class="btn" style="background: #ffcc00; color: #ffffff; border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);">
                     SWITCH OUTPUT
                 </a>
@@ -53,12 +53,28 @@
                 </div>
             </div>
 
-            <div class="control-card" style="border-color: #007bff;">
-                <label style="color: #007bff;">MEDIA CONTROL</label>
-                <div style="display: flex; gap: 10px; justify-content: space-between;">
-                    <button class="btn" style="background: #007bff; border-color: #007bff; color: #fff; flex: 1;" onclick="mediaCmd('prevtrack')">PREV</button>
-                    <button class="btn" style="background: #007bff; border-color: #007bff; color: #fff; flex: 2;" onclick="mediaCmd('playpause')">PLAY / PAUSE</button>
-                    <button class="btn" style="background: #007bff; border-color: #007bff; color: #fff; flex: 1;" onclick="mediaCmd('nexttrack')">NEXT</button>
+            <div class="control-card" style="border-color: #007bff; text-align: center;">
+                <div class="app-title" style="color: #007bff; border-bottom: none !important; margin-bottom: 20px; font-weight: 600; letter-spacing: 2px;">
+                    MEDIA CONTROL
+                </div>
+                
+                <div style="display: flex; gap: 8px; justify-content: center; align-items: stretch; width: 100%;">
+                    
+                    <button class="btn" onclick="mediaCmd('prevtrack')" 
+                            style="background: #007bff; color: white; border: none; flex: 1; padding: 22px 2px; font-weight: 900; border-radius: 10px; font-size: 0.7rem;">
+                        PREV
+                    </button>
+
+                    <button class="btn" onclick="mediaCmd('playpause')" 
+                            style="background: #007bff; color: white; border: none; flex: 1.8; padding: 22px 2px; font-weight: 900; border-radius: 10px; font-size: 0.7rem; box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);">
+                        PLAY / PAUSE
+                    </button>
+
+                    <button class="btn" onclick="mediaCmd('nexttrack')" 
+                            style="background: #007bff; color: white; border: none; flex: 1; padding: 22px 2px; font-weight: 900; border-radius: 10px; font-size: 0.7rem;">
+                        NEXT
+                    </button>
+                    
                 </div>
             </div>
 
