@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PC Remote</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container wide">
+        <h2 class="glow-text">SYSTEM COMMAND</h2>
+
+        <div class="dashboard-grid">
+            
+            <div class="control-card" style="border-color: #ff4b2b;">
+                <label style="color: #ff4b2b;">SYSTEM</label>
+                
+                <a href="/power" class="btn" 
+                style="background: #ff4b2b; color: white; border: none; text-decoration: none; text-align: center; display: block; font-weight: 900;">
+                    POWER OPTIONS
+                </a>
+            </div>
+
+            <div class="control-card" style="border-color: #a855f7;">
+                <label style="color: #a855f7;">WINDOW MANAGER</label>
+                <a href="/windows" class="btn btn-solid-purple">MANAGE WINDOWS</a>
+            </div>
+
+            <div class="control-card" style="border-color: #c96420;">
+                <label style="color: #c96420;">APP MANAGER</label>
+                <a href="/applications" class="btn btn-solid-orange">MANAGE APPS</a>
+            </div>
+
+            <div class="control-card" style="border-color: #a02796;">
+                <label style="color: #a02796;">REMOTE INPUT</label>
+                <a href="/remote_input" class="btn btn-solid-purple" style="background: #a02796; border-color: #a02796; box-shadow: 0 0 15px rgba(160, 39, 150, 0.4);">
+                    OPEN TRACKPAD
+                </a>
+            </div>
+
+            <div class="control-card" style="border-color: #ffcc00;">
+                <label style="color: #ffcc00;">AUDIO DEVICE</label>
+                <a href="/audio" class="btn" style="background: #ffcc00; color: #ffffff; border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);">
+                    SWITCH OUTPUT
+                </a>
+            </div>
+
+            <div class="control-card" style="border-color: #00ff00;">
+                <label style="color: #00ff00;">VOLUME: <span id="volNum">{{ current_vol }}</span>%</label>
+                <div class="slider-container">
+                    <input type="range" min="0" max="100" value="{{ current_vol }}" class="slider" id="volSlider" oninput="debouncedVolume(this.value)">
+                    
+                </div>
+            </div>
+
+            <div class="control-card" style="border-color: #007bff;">
+                <label style="color: #007bff;">MEDIA CONTROL</label>
+                <div style="display: flex; gap: 10px; justify-content: space-between;">
+                    <button class="btn" style="background: #007bff; border-color: #007bff; color: #fff; flex: 1;" onclick="mediaCmd('prevtrack')">PREV</button>
+                    <button class="btn" style="background: #007bff; border-color: #007bff; color: #fff; flex: 2;" onclick="mediaCmd('playpause')">PLAY / PAUSE</button>
+                    <button class="btn" style="background: #007bff; border-color: #007bff; color: #fff; flex: 1;" onclick="mediaCmd('nexttrack')">NEXT</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="dashboard-grid" style="margin-top: 30px;">
+            <div class="monitor-card" style="border-color: #00d4ff;">
+                <label>MONITOR 1</label>
+                <a href="/display/1">
+                    <img src="/screenshot/1" class="screen-preview">
+                </a>
+            </div>
+            <div class="monitor-card" style="border-color: #00d4ff;">
+                <label>MONITOR 2</label>
+                <a href="/display/2">
+                    <img src="/screenshot/2" class="screen-preview">
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- VOLUME LOGIC ---
+        const slider = document.getElementById('volSlider');
+        const volNum = document.getElementById('volNum');
+
+        function updateSliderFill(value) {
+            const percent = value + '%';
+            slider.style.background = `linear-gradient(to right, #00ff00 ${percent}, #001a00 ${percent})`;
+        }
+
+        updateSliderFill(slider.value);
+
+        slider.oninput = function() {
+            volNum.innerText = this.value;
+            updateSliderFill(this.value);
+            const formData = new FormData();
+            formData.append('volume', this.value);
+            fetch('/set_volume', { method: 'POST', body: formData });
+        };
+
+        // Function for Media (Prev, Play, Next)
+        function mediaCmd(command) {
+            console.log("Sending Media:", command);
+            const formData = new FormData();
+            formData.append('command', command);
+            fetch('/media_control', { method: 'POST', body: formData });
+        }
+
+        // Function for ENT and DEL
+        function sendKey(key) {
+            const formData = new FormData();
+            formData.append('key', key);
+            fetch('/key_press', { method: 'POST', body: formData });
+        }
+
+        function sendKey(key) {
+            const formData = new FormData();
+            formData.append('key', key);
+            fetch('/key_press', { method: 'POST', body: formData });
+        }
+
+        // Allow 'Enter' on phone keyboard to send text
+        document.getElementById('remoteInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendRemoteText();
+        });
+
+        let volumeTimeout;
+
+        function setVolume(val) {
+            const formData = new FormData();
+            // We use 'volume' here to match request.form.get('volume') in Python
+            formData.append('volume', val); 
+            fetch('/set_volume', { method: 'POST', body: formData });
+        }
+
+        // Ensure your debounced function calls the updated setVolume
+        function debouncedVolume(val) {
+            document.getElementById('volNum').innerText = val;
+            clearTimeout(volumeTimeout);
+            volumeTimeout = setTimeout(() => {
+                setVolume(val);
+            }, 50); 
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Monitor {{ monitor_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: black;
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            font-family: sans-serif;
+            /* Native zoom support */
+            touch-action: manipulation; 
+        }
+
+        /* --- White Pill Back Button --- */
+        .header-nav { padding: 20px; }
+        .btn-back-pill {
+            background: white;
+            color: black !important;
+            padding: 12px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 900;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            display: inline-block;
+            border: none;
+        }
+
+        /* --- Monitor Container --- */
+        .monitor-view-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        #screenImage {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #222;
+            border-radius: 8px;
+            /* Disable native long-press menus that block clicking */
+            -webkit-touch-callout: none;
+        }
+
+        /* --- Solid Blue Buttons (No Glow) --- */
+        .button-deck {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 40px;
+        }
+
+        .btn-solid-blue {
+            flex: 1;
+            background: #007bff;
+            color: white !important;
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            box-shadow: none;
+        }
+
+        /* The 'Ghost' input for the keyboard */
+        #remoteInput {
+            position: fixed;
+            top: -100px;
+            left: 0;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <input type="text" id="remoteInput" inputmode="text">
+
+    <div class="header-nav">
+        <a href="/" class="btn-back-pill">BACK</a>
+    </div>
+
+    <div class="monitor-view-container">
+        <img src="/screenshot/{{ monitor_id }}" id="screenImage">
+    </div>
+
+    <div class="button-deck">
+        <button class="btn-solid-blue" onclick="openKeyboard()">KEYBOARD</button>
+        <button class="btn-solid-blue" onclick="window.location.href='/'">DASHBOARD</button>
+    </div>
+
+    <script>
+        const screenImg = document.getElementById('screenImage');
+        const input = document.getElementById('remoteInput');
+
+        // --- THE FIX FOR PERSISTENT KEYBOARD ---
+        // Using 'pointerdown' allows us to stop the 'blur' event before it happens.
+        screenImg.addEventListener('pointerdown', function(e) {
+            // If keyboard is open, prevent the tap from closing it
+            if (document.activeElement === input) {
+                e.preventDefault();
+            }
+
+            const rect = screenImg.getBoundingClientRect();
+            const rx = (e.clientX - rect.left) / rect.width;
+            const ry = (e.clientY - rect.top) / rect.height;
+
+            const formData = new FormData();
+            formData.append('x', rx);
+            formData.append('y', ry);
+            formData.append('monitor_id', "{{ monitor_id }}");
+            formData.append('action', 'click');
+
+            fetch('/mouse_action', { method: 'POST', body: formData });
+        });
+
+        function openKeyboard() {
+            input.focus();
+            input.click();
+        }
+
+        // Send text letter-by-letter
+        input.addEventListener('input', function(e) {
+            if (e.data || e.inputType.includes("delete")) {
+                const formData = new FormData();
+                formData.append('text', e.data || ""); 
+                fetch('/type_text', { method: 'POST', body: formData });
+                input.value = ""; 
+            }
+        });
+
+        // Screenshot Refresh
+        // --- OPTIMIZED REFRESH LOGIC ---
+        let isRefreshing = false;
+
+        setInterval(() => {
+            // Only request a new frame if the previous one finished loading
+            if (!isRefreshing) {
+                isRefreshing = true;
+                
+                const newImg = new Image();
+                const timestamp = new Date().getTime();
+                const newSrc = "/screenshot/{{ monitor_id }}?t=" + timestamp;
+
+                newImg.onload = function() {
+                    screenImg.src = newSrc;
+                    isRefreshing = false;
+                };
+
+                newImg.onerror = function() {
+                    isRefreshing = false;
+                };
+
+                newImg.src = newSrc;
+            }
+        }, 150); // 150ms = ~6.5 Frames Per Second (Smooth for 4K streams)
+
+        // --- 1. CAPTURE LETTERS (input event) ---
+        input.addEventListener('input', function(e) {
+            // Only handle if there is actual text data (letters/numbers)
+            if (e.data) {
+                const formData = new FormData();
+                formData.append('text', e.data);
+                fetch('/type_text', { method: 'POST', body: formData });
+                input.value = ""; // Clear for next char
+            }
+        });
+
+        // --- 2. CAPTURE SPECIAL KEYS (keydown event) ---
+        input.addEventListener('keydown', function(e) {
+            let keyName = "";
+
+            if (e.key === "Enter") {
+                keyName = "enter";
+            } else if (e.key === "Backspace") {
+                keyName = "backspace";
+            }
+
+            if (keyName !== "") {
+                const formData = new FormData();
+                formData.append('key', keyName);
+                
+                // This hits your @app.route('/key_press') in app.py
+                fetch('/key_press', { method: 'POST', body: formData });
+                
+                // Prevents double-processing or unwanted form behavior
+                if (keyName === "enter") {
+                    input.value = ""; 
+                }
+            }
+        });
+    </script>
+</body>
+</html>

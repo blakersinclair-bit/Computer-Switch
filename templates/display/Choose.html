@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container" style="margin-top: 15vh;">
+        <h2 class="glow-text">MONITOR {{ monitor_id }}</h2>
+        
+        <div class="control-card">
+            <a href="/display/{{ monitor_id }}" class="btn" style="border-color: #00d4ff; color: #00d4ff; text-decoration: none; display: block; margin-bottom: 20px;">KEYBOARD & VIEW</a>
+            <a href="/shortcuts/{{ monitor_id }}" class="btn" style="border-color: #ffcc00; color: #ffcc00; text-decoration: none; display: block;">SHORTCUTS</a>
+        </div>
+        
+        <a href="/" style="color: #666; text-decoration: none; font-weight: bold;">[ CANCEL ]</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="container wide" style="position: relative; padding-top: 80px;">
+        
+        <a href="/" class="back-btn-header">BACK</a>
+
+        <h2 class="glow-text" style="color: #c96420;">APP MANAGER</h2>
+
+        <div class="app-grid">
+            
+            {% for app in apps %}
+            
+            <div class="app-card" id="card-{{ app.hwnd if app.is_open else loop.index }}" style="border-color: #c96420;">
+                
+                <div class="app-title" style="color: #c96420; border-bottom-color: #c96420;">{{ app.name }}</div>
+
+                {% if app.is_open %}
+                    <div class="move-btn-grid">
+                        <button class="btn" style="background: #c96420; color: #ffffff; border-color: #c96420; font-weight: 900;" onclick="executeMove({{ app.hwnd }}, 1)">MONITOR 1</button>
+                        <button class="btn" style="background: #c96420; color: #ffffff; border-color: #c96420; font-weight: 900;" onclick="executeMove({{ app.hwnd }}, 2)">MONITOR 2</button>
+                    </div>
+
+                    <div class="snap-selector">
+                        <div class="option-btn" onclick="selectSnap({{ app.hwnd }}, 'left')">LEFT</div>
+                        <div class="option-btn" onclick="selectSnap({{ app.hwnd }}, 'full')">FULL</div>
+                        <div class="option-btn" onclick="selectSnap({{ app.hwnd }}, 'right')">RIGHT</div>
+                    </div>
+                {% else %}
+                    <button class="btn" style="background: #222; color: #ffffff; border: 1px solid #444; font-weight: 900;" onclick="launchApp('{{ app.path | replace('\\', '\\\\') }}')">
+                        LAUNCH APPLICATION
+                    </button>
+                {% endif %}
+                
+            </div>
+            {% endfor %}
+            
+        </div>
+    </div>
+
+    <script>
+        const selections = {};
+
+        // Highlights selected snap button and saves state
+        function selectSnap(hwnd, layout) {
+            selections[hwnd] = layout;
+            const card = document.getElementById(`card-${hwnd}`);
+            const buttons = card.querySelectorAll('.option-btn');
+
+            buttons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.innerText.toLowerCase() === layout) {
+                    btn.classList.add('selected');
+                    // Applies orange highlight to match this page's theme
+                    btn.style.borderColor = '#c96420';
+                    btn.style.color = '#c96420';
+                    btn.style.background = 'rgba(201, 100, 32, 0.1)';
+                } else {
+                    // Resets styles
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                    btn.style.background = '';
+                }
+            });
+        }
+
+        // Sends move command to backend
+        function executeMove(hwnd, monId) {
+            const layout = selections[hwnd] || 'full';
+            const formData = new FormData();
+            formData.append('hwnd', hwnd);
+            formData.append('monitor_id', monId);
+            formData.append('layout', layout);
+
+            fetch('/move_window', { method: 'POST', body: formData })
+            .then(() => {
+                // Success flash
+                const card = document.getElementById(`card-${hwnd}`);
+                card.style.borderColor = "#00ff00"; 
+                setTimeout(() => { card.style.borderColor = "#c96420"; }, 500);
+            });
+
+            // Cleanup selection state
+            delete selections[hwnd];
+            const card = document.getElementById(`card-${hwnd}`);
+            card.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                btn.style.borderColor = '';
+                btn.style.color = '';
+                btn.style.background = '';
+            });
+        }
+
+        // Sends launch command to backend
+        function launchApp(path) {
+            const formData = new FormData();
+            formData.append('path', path);
+
+            fetch('/launch_app', { method: 'POST', body: formData })
+            .then(response => {
+                if (response.ok) {
+                    setTimeout(() => { window.location.reload(); }, 3000);
+                } else {
+                    alert("Launch failed. Check your file path in App.py");
+                }
+            });
+        }
+
+        // Auto-refresh logic (fixed to 5 seconds)
+        setInterval(() => {
+            const launchButtons = document.querySelectorAll('.btn-launch');
+            if (launchButtons.length > 0) {
+                window.location.reload();
+            }
+        }, 5000); 
+
+    </script>
+</body>
+</html>

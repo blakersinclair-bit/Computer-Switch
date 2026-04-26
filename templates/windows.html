@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container wide" style="position: relative; padding-top: 60px;">
+        <a href="/" class="back-btn-header">BACK</a>
+        <h2 class="glow-text" style="color: #a855f7;">APPS</h2>
+
+        <div class="app-grid">
+            {% for app in apps %}
+            <div class="app-card" id="card-{{ app.hwnd }}">
+                <div class="app-title">{{ app.title }}</div>
+                
+                <div class="move-btn-grid">
+                    <button class="btn move-btn mon1" onclick="executeMove({{ app.hwnd }}, 1)">MONITOR 1</button>
+                    <button class="btn move-btn mon2" onclick="executeMove({{ app.hwnd }}, 2)">MONITOR 2</button>
+                </div>
+
+                <div class="snap-selector">
+                    <div class="option-btn" onclick="selectSnap({{ app.hwnd }}, 'left')">LEFT</div>
+                    <div class="option-btn" onclick="selectSnap({{ app.hwnd }}, 'full')">FULL</div>
+                    <div class="option-btn" onclick="selectSnap({{ app.hwnd }}, 'right')">RIGHT</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const selections = {};
+
+        function selectSnap(hwnd, layout) {
+            selections[hwnd] = layout;
+            const card = document.getElementById(`card-${hwnd}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.innerText.toLowerCase() === layout) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function executeMove(hwnd, monId) {
+            const layout = selections[hwnd] || 'move';
+            const formData = new FormData();
+            formData.append('hwnd', hwnd);
+            formData.append('monitor_id', monId);
+            formData.append('layout', layout);
+            
+            fetch('/move_window', { method: 'POST', body: formData });
+
+            delete selections[hwnd];
+            const card = document.getElementById(`card-${hwnd}`);
+            card.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+        }
+    </script>
+</body>
+</html>

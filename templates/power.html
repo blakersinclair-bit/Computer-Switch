@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body style="background: #050505;">
+
+    <div class="container wide" style="position: relative; padding-top: 60px;">
+        
+        <a href="/" class="back-btn-header">BACK</a>
+
+        <h2 class="glow-text" style="color: #ff4b2b; text-shadow: 0 0 15px rgba(255, 75, 43, 0.4);">
+            SYSTEM
+        </h2>
+
+        <div style="display: flex; justify-content: center; width: 100%;">
+            <div class="control-card" style="border-color: #ff4b2b; text-align: center; max-width: 420px; width: 100%;">
+                
+                <div class="app-title" style="color: #ff4b2b; border-bottom: none !important; margin-bottom: 25px;">
+                    POWER
+                </div>
+                
+                <div id="initial-state">
+                    <button class="btn" onclick="togglePowerUI(true)" 
+                            style="background: #ff4b2b; color: white; border: none; width: 100%; padding: 20px; font-weight: 900; border-radius: 12px;">
+                        POWER OFF
+                    </button>
+                </div>
+
+                <div id="confirm-state" style="display: none;">
+                    <p style="color: white; font-weight: 900; margin-bottom: 20px; text-transform: uppercase; font-size: 0.9rem;">Are you sure?</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <button class="btn" onclick="submitShutdown()" style="background: #ff4b2b; color: white; border: none; font-weight: 900; padding: 15px; border-radius: 10px;">YES</button>
+                        <button class="btn" onclick="togglePowerUI(false)" style="background: #222; color: white; border: 1px solid #444; font-weight: 900; padding: 15px; border-radius: 10px;">NO</button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePowerUI(show) {
+            document.getElementById('initial-state').style.display = show ? 'none' : 'block';
+            document.getElementById('confirm-state').style.display = show ? 'block' : 'none';
+        }
+
+        function submitShutdown() {
+            fetch('/turnoff', { method: 'POST' })
+            .then(res => {
+                if(res.ok) {
+                    document.body.innerHTML = "<h2 style='color:#ff4b2b; text-align:center; margin-top:150px; font-weight:900;'>SYSTEM OFFLINE</h2>";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

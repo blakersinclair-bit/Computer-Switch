@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container wide" style="position: relative; padding-top: 80px;">
+        
+        <a href="/" class="back-btn-header">BACK</a>
+        
+        <h2 class="glow-text" style="color: #ffcc00; text-shadow: 0 0 15px rgba(255, 204, 0, 0.4);">
+            AUDIO OUTPUT
+        </h2>
+
+        <div class="app-grid">
+            {% for device in devices %}
+            <div class="app-card" style="border-color: #ffcc00;">
+                
+                <div class="app-title" style="color: #ffcc00; border-bottom-color: #ffcc00;">
+                    {{ device.name }}
+                </div>
+                
+                <button class="btn" 
+                        style="background: #ffcc00; color: #ffffff; border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); font-weight: 900;"
+                        onclick="setDevice('{{ device.name }}')">
+                    SELECT DEVICE
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <script>
+        function setDevice(deviceName) {
+            const formData = new FormData();
+            formData.append('device_name', deviceName);
+            
+            fetch('/set_audio', { method: 'POST', body: formData })
+                .then(() => {
+                    // Redirects instantly to home - No more alert popup
+                    window.location.href = "/";
+                });
+        }
+    </script>
+</body>
+</html>
