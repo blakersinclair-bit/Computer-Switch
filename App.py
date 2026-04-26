@@ -21,8 +21,11 @@ from pycaw.constants import CLSID_MMDeviceEnumerator
 from pycaw.pycaw import IMMDeviceEnumerator, IAudioEndpointVolume
 import threading
 import queue
+from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS  # <--- ADD THIS IMPORT
 
-
+app = Flask(__name__)
+CORS(app)  # <--- ADD THIS LINE RIGHT AFTER 'app = Flask'
 
 # --- DPI AWARENESS ---
 try:
@@ -34,7 +37,7 @@ except Exception:
         windll.user32.SetProcessDPIAware()
 
 pyautogui.FAILSAFE = False
-app = Flask(__name__)
+
 
 # --- MONITOR CONFIG ---
 MONITOR_MAP = { 1: 2, 2: 1 }
@@ -424,7 +427,31 @@ def launch_app():
             
     return "Invalid Path", 400
 
+# Global memory bank to hold the latest video data from Chrome
+latest_youtube_data = {"title": "No Media", "channel": "", "url": ""}
+
+@app.route('/youtube') 
+def youtube_page(): 
+    return render_template('youtube.html') 
+
+# --- 1. THE CATCHER (Listens for the Chrome Extension) ---
+@app.route('/youtube/update', methods=['POST'])
+def update_youtube():
+    from flask import request # Ensures request is available to read the incoming JSON
+    global latest_youtube_data
+    
+    # When Chrome sends new data, instantly overwrite the memory bank
+    latest_youtube_data = request.json 
+    return {"status": "success"}, 200
+
+# --- 2. THE DASHBOARD ROUTE (Sends data to your phone) ---
+@app.route('/youtube/pull', methods=['GET'])
+def pull_youtube():
+    from flask import jsonify
+    # Instantly hands your phone whatever is currently in the memory bank
+    return jsonify(latest_youtube_data), 200
+
 
 if __name__ == '__main__':
     # threaded=True allows simultaneous mouse & keyboard packets
-    app.run(host='0.0.0.0', port=5000, threaded=True, debug=False)
+    app.run(host='0.0.0.0', port=5000, threaded=True, debug=True)

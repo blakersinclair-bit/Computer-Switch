@@ -125,6 +125,13 @@ label {
     margin-bottom: 15px;
 }
 
+.btn-solid-red {
+    background: #FF0000;
+    color: white;
+    border: none;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
 .move-btn {
     padding: 14px;
     font-size: 0.75rem;

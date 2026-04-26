@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "YT Command Telemetry",
+  "version": "1.0",
+  "description": "Sends live YouTube timestamps to local command center.",
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*",
+    "http://localhost:5000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/watch*"],
+      "js": ["content.js"]
+    }
+  ]
+}

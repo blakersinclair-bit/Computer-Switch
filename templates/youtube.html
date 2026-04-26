@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> </head>
+<body style="background: #050505;"> <div class="container wide" style="position: relative; padding-top: 60px;"> <a href="/" class="back-btn-header">BACK</a> <h2 class="glow-text" style="color: #FF0000; text-shadow: 0 0 15px rgba(255, 0, 0, 0.4) !important;"> YOUTUBE
+        </h2>
+
+        <div style="display: flex; justify-content: center; width: 100%;"> <div class="control-card" style="border-color: #FF0000; text-align: center; max-width: 420px; width: 100%;"> <div class="app-title" style="color: #FF0000; border-bottom: none !important; margin-bottom: 25px;"> CURRENT MEDIA
+                </div>
+                
+                <button class="btn" onclick="pullYouTubeVideo()" style="background: #FF0000; color: white; border: none; width: 100%; padding: 20px; font-weight: 900; border-radius: 12px; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); margin-bottom: 20px;"> PULL VIDEO
+                </button>
+
+                <div id="yt-output" style="color: white; font-weight: 900; font-size: 1rem; min-height: 40px; padding: 10px; background: #111; border-radius: 8px; border: 1px solid #333;"> WAITING...
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function pullYouTubeVideo() {
+    const outputDiv = document.getElementById('yt-output');
+    outputDiv.innerHTML = "FETCHING...";
+    outputDiv.style.color = "#FFF";
+    
+    fetch('/youtube/pull')
+    .then(res => {
+        if (!res.ok) throw new Error("Server returned " + res.status);
+        return res.json();
+    })
+    .then(data => {
+        if (data.title === "No Media") {
+            outputDiv.innerHTML = "NOTHING PLAYING";
+            outputDiv.style.color = "#888";
+        } else if (data.title === "PYTHON ERROR:") {
+            outputDiv.innerHTML = `<span style="color:#FF0000;">${data.title}</span><br><span style="font-size: 0.8rem; color:#AAA;">${data.channel}</span>`;
+        } else {
+            // If we have a URL, make the text a clickable hyperlink
+            if (data.url && data.url !== "") {
+                outputDiv.innerHTML = `
+                    <a href="${data.url}" target="_blank" style="text-decoration: none; display: block;">
+                        <span style="color:#FFF;">${data.title}</span><br>
+                        <span style="font-size: 0.8rem; color:#AAA;">${data.channel}</span><br>
+                        <span style="font-size: 0.7rem; color:#FF0000; font-weight: bold; margin-top: 5px; display: inline-block;">TAP TO OPEN APP</span>
+                    </a>
+                `;
+            } else {
+                // Failsafe: Shows just the text if the background search failed
+                outputDiv.innerHTML = `<span style="color:#FFF;">${data.title}</span><br><span style="font-size: 0.8rem; color:#AAA;">${data.channel}</span>`;
+            }
+        }
+    })
+    .catch(err => {
+        outputDiv.innerHTML = "CONNECTION FAILED";
+        outputDiv.style.color = "#FF0000";
+        console.error("Fetch error:", err);
+    });
+}
+    </script>
+</body>
+</html>
